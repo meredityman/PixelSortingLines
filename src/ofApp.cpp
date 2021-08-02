@@ -1,59 +1,60 @@
 #include "ofApp.h"
 
+
+
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofSetFrameRate(1);
-    filepath = "image.png";
-    img.load(filepath);
 
-
-    ofLogNotice("ofApp::setup") << img.getWidth() << ", " << img.getHeight();
-
-    ofPixels & rawPixels = img.getPixels();
-
-    vector<vector<ofColor>> pixels;
-
-    for( int y = 0; y < img.getHeight(); y++){
-        vector<ofColor> row;
-        for( int x = 0; x < img.getWidth(); x++){
-            row.push_back(rawPixels.getColor(x,y));
-        } 
-        pixels.push_back(row);
-    } 
-
-
-    for( int i = 0; i < pixels.size(); i++ ) {
-        std::sort(pixels[i].begin(), pixels[i].end(), [](ofColor a, ofColor b) { 
-            return a.getBrightness() < b.getBrightness();
-        } );
-    }
-
-
-    ofPixels outputPixels;
-    outputPixels.allocate(img.getWidth(), img.getHeight(), OF_PIXELS_RGBA);
-
-    for( int y = 0; y < img.getHeight(); y++){
-        for( int x = 0; x < img.getWidth(); x++){
-            outputPixels.setColor(x, y, pixels[y][x]);
-        } 
-    } 
-    outImg.setFromPixels(outputPixels);
+    img.load("image.png");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 
+    if( !img.isAllocated()) return;
+
+    ofPixels rawPixels;
+    rawPixels = img.getPixels();
+
+    vector<vector<glm::ivec2>> lines = Sorters::curves(img);
+	ofLogNotice("curves") << "Num Lines: " << lines.size();
+
+    ofPixels outputPixels = rawPixels;
+    for( size_t i = 0; i < lines.size(); i++){
+        PixelSortLine line = PixelSortLine(lines[i]);
+        ofLogNotice("ofApp::update") << "Line:" << i;
+
+        line.copy(rawPixels);
+        line.sort();
+        line.paste(outputPixels);
+    }
+
+    outImg.setFromPixels(outputPixels);
 }
 
+//--------------------------------------------------------------
 void ofApp::draw(){
+
+
+    if( !outImg.isAllocated()) return;
     outImg.draw(0,0);
     //img.draw(0,0);
-
 
     std::ostringstream str;
     str << "Frame: " << ofGetFrameNum() << " | ";
     str << "Framerate: " << ofGetFrameRate() << " | ";
     ofSetWindowTitle(str.str());
+}
+
+//--------------------------------------------------------------
+void ofApp::loadImage(){
+    filepath = "image.png";
+    img.load(filepath);
+    ofLogNotice("ofApp::setup") << img.getWidth() << ", " << img.getHeight();
+}
+//--------------------------------------------------------------
+void ofApp::sortPixels(){
+
 }
 
 //--------------------------------------------------------------
@@ -108,5 +109,13 @@ void ofApp::gotMessage(ofMessage msg){
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
+    for( auto & path : dragInfo.files){
+        ofFile file(path);
 
+        img.load(path);
+
+        ofRectangle rect(0, 0, img.getWidth(), img.getHeight());
+        rect.scaleTo(ofRectangle(0, 0, 512, 512));
+        img.resize(rect.width, rect.height);
+    }
 }
