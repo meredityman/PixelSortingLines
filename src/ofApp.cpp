@@ -16,20 +16,22 @@ void ofApp::update(){
     ofPixels rawPixels;
     rawPixels = img.getPixels();
 
-    vector<vector<glm::ivec2>> lines = Sorters::curves(img);
+    vector<vector<glm::ivec2>> lines = Sorters::circles(img);
 	ofLogNotice("curves") << "Num Lines: " << lines.size();
 
     ofPixels outputPixels = rawPixels;
     for( size_t i = 0; i < lines.size(); i++){
         PixelSortLine line = PixelSortLine(lines[i]);
-        ofLogNotice("ofApp::update") << "Line:" << i;
 
         line.copy(rawPixels);
-        line.sort();
+        line.sort(reverse);
         line.paste(outputPixels);
     }
 
     outImg.setFromPixels(outputPixels);
+
+    if(saving)
+        outImg.save((dir.path()  + '/' + ofGetTimestampString() + ".png"));
 }
 
 //--------------------------------------------------------------
@@ -43,6 +45,7 @@ void ofApp::draw(){
     std::ostringstream str;
     str << "Frame: " << ofGetFrameNum() << " | ";
     str << "Framerate: " << ofGetFrameRate() << " | ";
+    str << "Recording: " << (saving ? "Yes" : "No") << " | ";
     ofSetWindowTitle(str.str());
 }
 
@@ -59,7 +62,23 @@ void ofApp::sortPixels(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    if( key == OF_KEY_CONTROL){
+        dir.open("");
+        outImg.save((dir.path() + '/' + ofGetTimestampString() + ".png"));
+    }
+    if( key == ' '){
+        if(!saving){
+            saving = true;
+            dir.open(ofGetTimestampString());
+            ofDirectory::createDirectory(dir.path());
+            outImg.save((dir.path()  + '/' + ofGetTimestampString() + ".png"));
+        } else {
+            saving = false;
+        }
+    }
+    if( key == 'r'){
+         reverse = !reverse;
+    }
 }
 
 //--------------------------------------------------------------
@@ -115,7 +134,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
         img.load(path);
 
         ofRectangle rect(0, 0, img.getWidth(), img.getHeight());
-        rect.scaleTo(ofRectangle(0, 0, 512, 512));
+        rect.scaleTo(ofRectangle(0, 0, 720, 720));
         img.resize(rect.width, rect.height);
     }
 }

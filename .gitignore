@@ -2,7 +2,7 @@
 # check another .ignore file in addons folder
 bin/*
 !bin/data/
-
+bin/data/**/*.png
 
 # Xcode Project
 xcuserdata/
