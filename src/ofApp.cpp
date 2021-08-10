@@ -5,18 +5,22 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 
-    img.load("image.png");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    int frame = 1 + (ofGetFrameNum() % 25);
+    std::ostringstream path;
+    path << "target/frame_" << ofToString(frame, 4 , '0') << ".png";
+
+    img.load(path.str());
 
     if( !img.isAllocated()) return;
 
     ofPixels rawPixels;
     rawPixels = img.getPixels();
 
-    vector<vector<glm::ivec2>> lines = Sorters::circles(img);
+    vector<vector<glm::ivec2>> lines = Sorters::curves(img);
 	ofLogNotice("curves") << "Num Lines: " << lines.size();
 
     ofPixels outputPixels = rawPixels;
@@ -24,7 +28,7 @@ void ofApp::update(){
         PixelSortLine line = PixelSortLine(lines[i]);
 
         line.copy(rawPixels);
-        line.sort(reverse);
+        line.sort(reverse, mirror);
         line.paste(outputPixels);
     }
 
@@ -78,6 +82,9 @@ void ofApp::keyPressed(int key){
     }
     if( key == 'r'){
          reverse = !reverse;
+    }
+    if( key == 'm'){
+         mirror = !mirror;
     }
 }
 

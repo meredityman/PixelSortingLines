@@ -71,7 +71,8 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "*.ipp": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "variant": "cpp"
     },
     "cmake.configureOnOpen": false
 }

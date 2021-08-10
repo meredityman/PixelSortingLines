@@ -3,6 +3,7 @@
 bin/*
 !bin/data/
 bin/data/**/*.png
+bin/data/**/*.gif
 
 # Xcode Project
 xcuserdata/

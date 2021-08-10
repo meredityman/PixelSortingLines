@@ -63,12 +63,14 @@ namespace Sorters {
 
 			pline.bezierTo(cpt1, cpt2,end );
 
-			pline = pline.getResampledBySpacing(1.0);
+			pline = pline.getResampledBySpacing(.5);
 
 			if(pline.size() != 0){
-				line.resize(pline.size());
+				line.clear();
 				for( size_t i = 0; i < pline.size(); i++){
-					line[i] = pline[i];
+					auto & p = pline[i];
+					if(p.x > 0 && p.x < img.getWidth() && p.y > 0 && p.y < img.getHeight())
+					line.push_back(p);
 				}
 				//ofLogNotice("curves") << "Num pts: " << line.size();		
 				lines.push_back(line);
@@ -112,7 +114,6 @@ namespace Sorters {
 }
 
 
-
 class PixelSortLine {
 public:
 
@@ -143,32 +144,32 @@ public:
 		}
 	}
 
-	void sort(bool reverse = false){
+	void sort(bool reverse = false, bool mirror = false){
 		// std::sort(colors.begin(), colors.end(), [](ofColor a, ofColor b) { 
 		// 			return a.getBrightness() < b.getBrightness();
 		// } );
 		if(reverse){
 			std::sort(colors.begin(), colors.end(), [](ofColor a, ofColor b) { 
-						return a.getHue()  > b.getHue() ;
+						return a.getBrightness() < b.getBrightness();
 			} );
 		} else {
 			std::sort(colors.begin(), colors.end(), [](ofColor a, ofColor b) { 
-						return a.getHue()  < b.getHue() ;
+						return a.getBrightness() < b.getBrightness();
 			} );	
 		}
 
+		if(mirror) {
+			std::vector<ofColor> colors_l, colors_r;
 
-		std::vector<ofColor> colors_l, colors_r;
+			for( size_t i = 0; i < (colors.size() - 1); i+=2){
+				colors_l.push_back(colors[i]);
+				colors_r.push_back(colors[i + 1]);
+			}
+			if(colors.size() % 2) colors_l.push_back(colors.back());
 
-		for( size_t i = 0; i < (colors.size() - 1); i+=2){
-			colors_l.push_back(colors[i]);
-			colors_r.push_back(colors[i + 1]);
+			std::copy(colors_l.begin(), colors_l.end(),   colors.begin());
+			std::copy(colors_l.rbegin(), colors_l.rend(), colors.begin() + colors_l.size());
 		}
-		if(colors.size() % 2) colors_l.push_back(colors.back());
-
-		std::copy(colors_l.begin(), colors_l.end(),   colors.begin());
-		std::copy(colors_l.rbegin(), colors_l.rend(), colors.begin() + colors_l.size());
-
 	};
 
 	void paste(ofPixels & pixels){
@@ -248,6 +249,7 @@ class ofApp : public ofBaseApp{
 		std::string filepath;
 
 		bool reverse = false;
+		bool mirror  = false;
 
 		ofDirectory dir;
 		bool saving = false;
